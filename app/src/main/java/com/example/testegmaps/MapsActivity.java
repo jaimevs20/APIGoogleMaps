@@ -68,7 +68,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //Seta o tipo do mapa: https://developers.google.com/maps/documentation/android-sdk/map#change_the_map_type
         mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
         //Habilita Mapas de Ambientes Internos
-        //mMap.setIndoorEnabled(true);
+        //mMap.setIndoorEnabled(true);;
     }
 /*
     public void onResume() {

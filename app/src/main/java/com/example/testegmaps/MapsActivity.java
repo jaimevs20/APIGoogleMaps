@@ -3,6 +3,7 @@ package com.example.testegmaps;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentTransaction;
 
+import android.graphics.Color;
 import android.icu.text.CaseMap;
 import android.os.Bundle;
 import android.util.Log;
@@ -19,7 +20,9 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback{
@@ -71,6 +74,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap = googleMap;
         //Seta o tipo do mapa: https://developers.google.com/maps/documentation/android-sdk/map#change_the_map_type
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        lngs = new ArrayList<LatLng>();
 
         latitude = -22.9035;
         longitude = -43.2096;
@@ -81,7 +85,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LatLng local1 = new LatLng(latitude, longitude);
         LatLng local2 = new LatLng(latitude2, longitude2);
 
-        CameraPosition cameraPosition = new CameraPosition.Builder().target(local1).zoom(15)/*rotação*//*.bearing(0)./*inclinação*/.tilt(90).build();
+        CameraPosition cameraPosition = new CameraPosition.Builder().target(local1).zoom(20)/*rotação*//*.bearing(0)./*inclinação*/.tilt(90).build();
         CameraUpdate up = CameraUpdateFactory.newCameraPosition(cameraPosition);
 
         mMap.animateCamera(up, 3000, new GoogleMap.CancelableCallback() {
@@ -97,7 +101,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
 
         //Markers (Marcadores)
-        addMarker(local1, "Marker do Local Inicial", "Descrição");
+       // addMarker(local1, "Marker do Local Inicial", "Descrição");
         //addMarker(local2, "Marker do Local 2", "Descrição");
 
         //EVENTOS
@@ -110,6 +114,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
                 //adiciona um novo marcador no local do clique
                 addMarker(new LatLng(local.latitude,local.longitude), "Marker Reposicionado", "Lat: "+local.latitude+" Long: "+local.longitude);
+                lngs.add(local);    //preenche o array com a rota
+                desenhaRota();      //desenha as rotas
             }
         });
 
@@ -143,7 +149,25 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     //Cria um Marker
     public void addMarker(LatLng local, String title, String snippet){
-        Marker marker = mMap.addMarker(new MarkerOptions().position(local).title(title).snippet(snippet).draggable(true));
+        /*Marker*/ marker = mMap.addMarker(new MarkerOptions().position(local).title(title).snippet(snippet).draggable(true));
     }
 
+    public void desenhaRota(){
+        PolylineOptions polylineOptions = null;
+        int tam = lngs.size();
+
+        if(polyline == null){
+            polylineOptions = new PolylineOptions();
+
+            for(int i = 0; i < tam; i++){
+                polylineOptions.add(lngs.get(i));   //preenchendo o array list
+            }
+            polylineOptions.color(Color.GREEN);
+            polyline = mMap.addPolyline(polylineOptions);   //desenho da rota
+        }
+        else{
+            polyline.setPoints(lngs);
+        }
+
+    }
 }

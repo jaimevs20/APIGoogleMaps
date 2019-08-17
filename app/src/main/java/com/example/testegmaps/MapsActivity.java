@@ -36,8 +36,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private SupportMapFragment mapFragment;
     private GoogleMap mMap;
-    private double latitude, longitude, latitude2, longitude2;
     private Marker marker;
+    private double latitude;
+    private double longitude;
     private Polyline polyline;
     private List<LatLng> lngs;
 
@@ -81,16 +82,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap = googleMap;
         //Seta o tipo do mapa: https://developers.google.com/maps/documentation/android-sdk/map#change_the_map_type
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-        lngs = new ArrayList<LatLng>();
 
-        latitude = -22.9035;
-        longitude = -43.2096;
-        latitude2 = -22.9095;
-        longitude2 = -43.2086;
+        lngs = new ArrayList<LatLng>();     //Array do caminho
+
+        Coordenada coordenada1 = new Coordenada(-22.9035,-43.2096);
+        Coordenada coordenada2 = new Coordenada(-22.9095,-43.2086);
 
         // Instanciando os locais de acordo às respectivas latitudes e longitudes
-        LatLng local1 = new LatLng(latitude, longitude);
-        LatLng local2 = new LatLng(latitude2, longitude2);
+        LatLng local1 = new LatLng(coordenada1.getLatitude(), coordenada1.getLongitude());
+        LatLng local2 = new LatLng(coordenada2.getLatitude(), coordenada2.getLongitude());
 
         CameraPosition cameraPosition = new CameraPosition.Builder().target(local1).zoom(20)/*rotação*//*.bearing(0)./*inclinação*/.tilt(90).build();
         CameraUpdate up = CameraUpdateFactory.newCameraPosition(cameraPosition);
@@ -169,7 +169,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             for(int i = 0; i < tam; i++){
                 polylineOptions.add(lngs.get(i));   //preenchendo o array list
             }
-            polylineOptions.color(Color.GREEN);
+            polylineOptions.color(Color.BLACK);
             polyline = mMap.addPolyline(polylineOptions);   //desenho da rota
         }
         else{
@@ -233,6 +233,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         String cidade = endereco.get(0).getSubAdminArea(); //retorna o nome da cidade
         String pais = endereco.get(0).getCountryName(); //retorna o nome do país
 
-        Toast.makeText(MapsActivity.this,"Você está em: "+rua,Toast.LENGTH_LONG).show();
+        Toast.makeText(MapsActivity.this,"Você está em: "+cidade,Toast.LENGTH_LONG).show();
     }
 }

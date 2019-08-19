@@ -11,18 +11,48 @@
     android:orientation="vertical"
     tools:context=".MapsActivity">
 
-    <Button
-        android:text="Distância"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="getDistancia"/>
+        android:orientation="vertical">
 
-    <Button
-        android:text="Local"
+        <Button
+            android:text="Distância"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="getDistancia"/>
+
+        <Button
+            android:text="Local"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="getLocal"/>
+    </LinearLayout>
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="getLocal"/>
+        android:orientation="horizontal">
+        <EditText
+            android:id="@+id/origin"
+            android:hint="Origem"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
 
+        <EditText
+            android:id="@+id/destination"
+            android:hint="Destino"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+
+        <Button
+            android:text="Rota"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="getRota"/>
+    </LinearLayout>
 
 <fragment
     android:id="@+id/map"

@@ -12,6 +12,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdate;
@@ -27,10 +28,22 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback{
 
@@ -41,6 +54,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private double longitude;
     private Polyline polyline;
     private List<LatLng> lngs;
+    private long distancia;
+
+    Coordenada coordenada1 = new Coordenada(-13.873580,-40.071181); //UESB
+    Coordenada coordenada2 = new Coordenada(-22.9095,-43.2086);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,11 +88,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     /**
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
+     * This is where we can add markers or lines, add listeners or move the camera.
      */
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -85,25 +98,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         lngs = new ArrayList<LatLng>();     //Array do caminho
 
-        Coordenada coordenada1 = new Coordenada(-22.9035,-43.2096);
-        Coordenada coordenada2 = new Coordenada(-22.9095,-43.2086);
-
         // Instanciando os locais de acordo às respectivas latitudes e longitudes
         LatLng local1 = new LatLng(coordenada1.getLatitude(), coordenada1.getLongitude());
         LatLng local2 = new LatLng(coordenada2.getLatitude(), coordenada2.getLongitude());
 
-        CameraPosition cameraPosition = new CameraPosition.Builder().target(local1).zoom(20)/*rotação*//*.bearing(0)./*inclinação*/.tilt(90).build();
+        CameraPosition cameraPosition = new CameraPosition.Builder().target(local1).zoom(15)/*rotação*//*.bearing(0)./*inclinação*/.tilt(90).build();
         CameraUpdate up = CameraUpdateFactory.newCameraPosition(cameraPosition);
 
         mMap.animateCamera(up, 3000, new GoogleMap.CancelableCallback() {
             @Override
             public void onFinish() {
-                Log.i("Script", "CancelableCallback.onFinish()");   //Ação quando a animação é finalizada
+                Log.i("Script", "Fim da animação");   //Ação quando a animação é finalizada
             }
 
             @Override
             public void onCancel() {
-                Log.i("Script", "CancelableCallback.onCancel()");   //Ação quando a animação é cancelada
+                Log.i("Script", "Animação cancelada");   //Ação quando a animação é cancelada
             }
         });
 
@@ -169,6 +179,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             for(int i = 0; i < tam; i++){
                 polylineOptions.add(lngs.get(i));   //preenchendo o array list
             }
+
             polylineOptions.color(Color.BLACK);
             polyline = mMap.addPolyline(polylineOptions);   //desenho da rota
         }
@@ -179,17 +190,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     //Obtém a distância
     public void getDistancia(View view) {
-        double distancia=0;
+/*        double distancia=0;
 
         for (int i = 0; i<lngs.size();i++){
             if(i < lngs.size()-1){
                 distancia += calculaDistancia(lngs.get(i),lngs.get(i+1));   //Distância total
             }
-        }
+        }*/
         Toast.makeText(MapsActivity.this,"Distância: "+distancia+" metros",Toast.LENGTH_LONG).show();
     }
 
-    //Calcula a distância entre dois pontos
+    //Calcula a distância entre dois pontos no plano
     public static double calculaDistancia(LatLng local1, LatLng local2){
        //Método mais preciso e utilizado pelos desenvolvedores no cálculo das distâncias
         double lat1 = local1.latitude;
@@ -233,6 +244,128 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         String cidade = endereco.get(0).getSubAdminArea(); //retorna o nome da cidade
         String pais = endereco.get(0).getCountryName(); //retorna o nome do país
 
-        Toast.makeText(MapsActivity.this,"Você está em: "+cidade,Toast.LENGTH_LONG).show();
+        if(rua == null || cidade == null || pais == null)
+            Toast.makeText(MapsActivity.this,"Local não identificado",Toast.LENGTH_LONG).show();
+        else {
+            Toast.makeText(MapsActivity.this,
+                    "Você está em: " + rua+"\nCidade: "+cidade+"\nPaís: "+pais, Toast.LENGTH_LONG).show();
+        }
+    }
+
+    /*
+
+
+                            ROTAS PELO GOOGLE MAPS
+
+
+
+    */
+    //Obtendo rotas inseridas pelo Usuário
+    public void getRota(View view) throws IOException, JSONException {
+        EditText editTextOrigin = findViewById(R.id.origin);
+        EditText editTextDestination = findViewById(R.id.destination);
+
+        //Codificando o que foi digitado nos campos com URLEncoder
+        String origin = URLEncoder.encode(editTextOrigin.getText().toString(),"UTF-8") ,
+                destination = URLEncoder.encode(editTextDestination.getText().toString(),"UTF-8");
+
+        obterRota(origin,destination);
+    }
+
+    //Traçando e calculando rota com base no json fornecido pelo Google
+    public void obterRota(final String origin, final String destination) throws IOException, JSONException {
+        String url= "https://maps.googleapis.com/maps/api/directions/json?origin="
+                +origin+"&destination="+destination+"&key=AIzaSyABCSds3NYfazat0QP8HADl_bjXLsLmYIA";
+
+        OkHttpClient client = new OkHttpClient();
+        Request request = new Request.Builder().url(url).build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if(response.isSuccessful()){
+                    final String myResponse = response.body().string();
+
+                    MapsActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                Log.i("Script", myResponse);
+                                lngs = buildJSONRoute(myResponse);
+                                desenhaRota();
+                            }
+                            catch(JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    // PARSER JSON - Acesso ao Json gerado pelo Google, e tratamento das informações úteis à aplicação
+    public List<LatLng> buildJSONRoute(String json) throws JSONException{
+        JSONObject result = new JSONObject(json);
+        JSONArray routes = result.getJSONArray("routes");
+
+        distancia = routes.getJSONObject(0).getJSONArray("legs").getJSONObject(0).getJSONObject("distance").getInt("value");
+
+        JSONArray steps = routes.getJSONObject(0).getJSONArray("legs").getJSONObject(0).getJSONArray("steps");  //Aqui é onde os pontos são capturados
+        List<LatLng> lines = new ArrayList<LatLng>();
+
+        for(int i=0; i < steps.length(); i++) {
+            Log.i("Script", "STEP: LAT: "+steps.getJSONObject(i).getJSONObject("start_location").getDouble("lat")+" | LNG: "+steps.getJSONObject(i).getJSONObject("start_location").getDouble("lng"));
+
+
+            String polyline = steps.getJSONObject(i).getJSONObject("polyline").getString("points");
+
+            for(LatLng p : decodePolyline(polyline)) {
+                lines.add(p);
+            }
+
+            Log.i("Script", "STEP: LAT: "+steps.getJSONObject(i).getJSONObject("end_location").getDouble("lat")+" | LNG: "+steps.getJSONObject(i).getJSONObject("end_location").getDouble("lng"));
+        }
+
+        return(lines);
+    }
+
+    // DECODE POLYLINE
+    private List<LatLng> decodePolyline(String encoded) {
+
+        List<LatLng> listPoints = new ArrayList<LatLng>();
+        int index = 0, len = encoded.length();
+        int lat = 0, lng = 0;
+
+        while (index < len) {
+            int b, shift = 0, result = 0;
+            do {
+                b = encoded.charAt(index++) - 63;
+                result |= (b & 0x1f) << shift;
+                shift += 5;
+            } while (b >= 0x20);
+            int dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+            lat += dlat;
+
+            shift = 0;
+            result = 0;
+            do {
+                b = encoded.charAt(index++) - 63;
+                result |= (b & 0x1f) << shift;
+                shift += 5;
+            } while (b >= 0x20);
+            int dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+            lng += dlng;
+
+            LatLng p = new LatLng((((double) lat / 1E5)), (((double) lng / 1E5)));
+            Log.i("Script", "POL: LAT: "+p.latitude+" | LNG: "+p.longitude);
+            listPoints.add(p);
+        }
+        return listPoints;
     }
 }

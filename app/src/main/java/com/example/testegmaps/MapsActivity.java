@@ -56,7 +56,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private List<LatLng> lngs;
     private long distancia;
 
-    Coordenada coordenada1 = new Coordenada(-13.873580,-40.071181); //UESB
+    Coordenada coordenada1 = new Coordenada(-14.889199,-40.803214); //UESB
     Coordenada coordenada2 = new Coordenada(-22.9095,-43.2086);
 
     @Override
@@ -102,7 +102,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LatLng local1 = new LatLng(coordenada1.getLatitude(), coordenada1.getLongitude());
         LatLng local2 = new LatLng(coordenada2.getLatitude(), coordenada2.getLongitude());
 
-        CameraPosition cameraPosition = new CameraPosition.Builder().target(local1).zoom(15)/*rotação*//*.bearing(0)./*inclinação*/.tilt(90).build();
+        CameraPosition cameraPosition = new CameraPosition.Builder().target(local1).zoom(8)/*rotação*//*.bearing(0)./*inclinação*/.tilt(90).build();
         CameraUpdate up = CameraUpdateFactory.newCameraPosition(cameraPosition);
 
         mMap.animateCamera(up, 3000, new GoogleMap.CancelableCallback() {
@@ -180,7 +180,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 polylineOptions.add(lngs.get(i));   //preenchendo o array list
             }
 
-            polylineOptions.color(Color.BLACK);
+            polylineOptions.color(Color.BLUE);
             polyline = mMap.addPolyline(polylineOptions);   //desenho da rota
         }
         else{
@@ -269,13 +269,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         String origin = URLEncoder.encode(editTextOrigin.getText().toString(),"UTF-8") ,
                 destination = URLEncoder.encode(editTextDestination.getText().toString(),"UTF-8");
 
-        obterRota(origin,destination);
+        //obterRota(origin,destination);
+        obterRota(new LatLng(-13.8544,-40.0790), new LatLng(-14.8601,-40.8412));//JEE p/ VCA
     }
 
     //Traçando e calculando rota com base no json fornecido pelo Google
-    public void obterRota(final String origin, final String destination) throws IOException, JSONException {
-        String url= "https://maps.googleapis.com/maps/api/directions/json?origin="
-                +origin+"&destination="+destination+"&key=AIzaSyABCSds3NYfazat0QP8HADl_bjXLsLmYIA";
+    //public void obterRota(final String origin, final String destination) throws IOException, JSONException {
+
+    //Por latitude e Longitude (mais preciso):
+    public void obterRota(final LatLng origin, final LatLng destination) throws IOException, JSONException {
+        String url= /*"https://maps.googleapis.com/maps/api/directions/json?origin="
+                +origin.latitude+"&destination="+destination+"&key=AIzaSyABCSds3NYfazat0QP8HADl_bjXLsLmYIA";*/
+        "https://maps.googleapis.com/maps/api/directions/json?origin="
+                +origin.latitude+","+origin.longitude+"&destination="+destination.latitude+","+destination.longitude
+                +"&key=AIzaSyABCSds3NYfazat0QP8HADl_bjXLsLmYIA";
 
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder().url(url).build();

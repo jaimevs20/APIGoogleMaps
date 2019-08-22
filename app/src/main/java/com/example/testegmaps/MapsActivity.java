@@ -1,3 +1,9 @@
+/**
+ * Activity com as funcionalidades básicas da API Google Maps, para consulta.
+ * São: manipulação e personalização do mapa, marcadores "Markers", Polylines e json disponibilizado pela Google;
+ * obtenção de rota através de inputs, bem como latitude e longitude (versão atual);
+ */
+
 package com.example.testegmaps;
 
 import androidx.fragment.app.FragmentActivity;
@@ -56,9 +62,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private List<LatLng> lngs;
     private long distancia;
 
-    Coordenada coordenada1 = new Coordenada(-13.873622, -40.071181); //UESB JEE
-    Coordenada coordenada2 = new Coordenada(-13.859748, -40.083198); //Banco do Brasil JEE
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -85,6 +88,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mapFragment.getMapAsync(this);
     }
 
+    Coordenada coordenada1 = new Coordenada(-13.873622, -40.071181); //UESB JEE
+    Coordenada coordenada2 = new Coordenada(-13.859748, -40.083198); //Banco do Brasil JEE
+
     /**
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.
@@ -102,7 +108,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LatLng local1 = new LatLng(coordenada1.getLatitude(), coordenada1.getLongitude());
         LatLng local2 = new LatLng(coordenada2.getLatitude(), coordenada2.getLongitude());
 
-        CameraPosition cameraPosition = new CameraPosition.Builder().target(local1).zoom(10)/*rotação*//*.bearing(0)./*inclinação*/.tilt(90).build();
+        CameraPosition cameraPosition = new CameraPosition.Builder().target(local1).zoom(15)/*rotação*//*.bearing(0)./*inclinação*/.tilt(90).build();
         CameraUpdate up = CameraUpdateFactory.newCameraPosition(cameraPosition);
 
         mMap.animateCamera(up, 3000, new GoogleMap.CancelableCallback() {
@@ -214,22 +220,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         Math.sin(dLon/2) * Math.sin(dLon/2);
         double c = 2 * Math.asin(Math.sqrt(a));
         return 6366000 * c;
-       /*   Location localOrigem = new Location(LocationManager.GPS_PROVIDER),
-                localDestino = new Location(LocationManager.GPS_PROVIDER);
-
-        localOrigem.setLatitude(local1.latitude);
-        localOrigem.setLongitude(local2.longitude);
-
-        localDestino.setLatitude(local2.latitude);
-        localDestino.setLatitude(local2.longitude);
-
-        return localOrigem.distanceTo(localDestino);*/
-       /* if (local1 == null || local2 == null)
-            return Double.parseDouble(null);
-        float[] result = new float[1];
-        Location.distanceBetween(local1.latitude, local2.longitude,
-                local1.latitude, local1.latitude, result);
-        return (double) result[0];*/
     }
 
     //Captura a localização do Marker no mapa
@@ -276,7 +266,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     //Traçando e calculando rota com base no json fornecido pelo Google
 
-    //Origem e Destino Informados pelo Usuário
+    //Origem e Destino inseridos pelo Usuário
     //public void obterRota(final String origin, final String destination) throws IOException, JSONException {
 
     //Por latitude e Longitude (mais preciso):
